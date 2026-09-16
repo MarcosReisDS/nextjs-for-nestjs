@@ -32,9 +32,41 @@ export async function createUserAction(
         }
     }
 
-    return {
-        user: state.user,
-        errors: [],
-        success: true
+    const apiUrl = process.env.API_URL || 'http://localhost:3001';
+
+    try {
+        const response = await fetch(`${apiUrl}/user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(ParsedFormData.data)
+        })
+        const json = await response.json()
+
+        if (!response.ok) {
+            console.log(json)
+
+            return {
+                user: PublicUserSchema.parse(formObj),
+                errors: json.message,
+                success: false
+            }
+        }
+
+        console.log(json)
+        return {
+            user: PublicUserSchema.parse(formObj),
+            errors: ['Sucess'],
+            success: true
+        }
+    } catch (e) {
+        console.log(e)
+
+        return {
+            user: PublicUserSchema.parse(formObj),
+            errors: ['Falha ao conectar-se ao servidor'],
+            success: false
+        }
     }
 }
