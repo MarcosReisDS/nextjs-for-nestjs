@@ -1,7 +1,9 @@
 'use server';
 
 import { CreateUserSchema, PublicUserDto, PublicUserSchema } from "@/lib/user/schemas";
+import { apiRequest } from "@/utils/api-request";
 import { getZodErrorMessage } from "@/utils/get-zod-error-messages";
+import { redirect } from "next/navigation";
 
 type CreateUserActionState = {
     user: PublicUserDto;
@@ -22,51 +24,31 @@ export async function createUserAction(
     }
 
     const formObj = Object.fromEntries(formData.entries())
-    const ParsedFormData = CreateUserSchema.safeParse(formObj)
+    const parsedFormData = CreateUserSchema.safeParse(formObj)
 
-    if (!ParsedFormData.success) {
+    if (!parsedFormData.success) {
         return {
             user: PublicUserSchema.parse(formObj),
-            errors: getZodErrorMessage(ParsedFormData.error.format()),
+            errors: getZodErrorMessage(parsedFormData.error.format()),
             success: false
         }
     }
 
-    const apiUrl = process.env.API_URL || 'http://localhost:3001';
+    const createResponse = await apiRequest<PublicUserDto>('/user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(parsedFormData.data)
+    })
 
-    try {
-        const response = await fetch(`${apiUrl}/user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(ParsedFormData.data)
-        })
-        const json = await response.json()
-
-        if (!response.ok) {
-            console.log(json)
-
-            return {
-                user: PublicUserSchema.parse(formObj),
-                errors: json.message,
-                success: false
-            }
-        }
-
-        console.log(json)
+    if (!createResponse.success) {
         return {
             user: PublicUserSchema.parse(formObj),
-            errors: ['Sucess'],
-            success: true
-        }
-    } catch (e) {
-        console.log(e)
-
-        return {
-            user: PublicUserSchema.parse(formObj),
-            errors: ['Falha ao conectar-se ao servidor'],
-            success: false
+            errors: createResponse.errors,
+            success: createResponse.success
         }
     }
+
+    redirect('/login?created=1')
 }
