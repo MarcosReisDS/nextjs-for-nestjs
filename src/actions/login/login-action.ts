@@ -1,6 +1,6 @@
 'use server';
 
-import { createLoginSession, verifyPassword } from "@/lib/login/manage-login";
+import { createLoginSession, createLoginSessionFromApi, verifyPassword } from "@/lib/login/manage-login";
 import { LoginSchema } from "@/lib/login/schemas";
 import { apiRequest } from "@/utils/api-request";
 import { asyncDelay } from "@/utils/async-delay";
@@ -42,9 +42,6 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
         }
     }
 
-    // await createLoginSession(email);
-    // redirect('/admin/post');
-
     const loginResponse = await apiRequest<{accessToken: string}>('/auth/login', {
         method: 'POST',
         headers: {
@@ -60,10 +57,6 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
         }
     }
 
-    console.log(loginResponse.data);
-
-    return {
-        email: formEmail,
-        errors: ['Success']
-    }
+   await createLoginSessionFromApi(loginResponse.data.accessToken);
+    redirect('/admin/post');
 }
