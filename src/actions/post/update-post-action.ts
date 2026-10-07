@@ -2,7 +2,7 @@
 
 import { makePartialPublicPost, makePublicPostFromDb, PublicPost } from "@/dto/post/dto";
 import { verifyLoginSession } from "@/lib/login/manage-login";
-import { PostUpdateSchema } from "@/lib/post/validations";
+import { PostUpdateSchema } from "@/lib/post/schemas";
 import { postRepository } from "@/repositories/post";
 import { getZodErrorMessage } from "@/utils/get-zod-error-messages";
 import { revalidateTag } from "next/cache";
