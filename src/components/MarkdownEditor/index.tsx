@@ -46,6 +46,7 @@ export function MarkdownEditor({
                     name: textAreaName,
                     disabled: disabled,
                 }}
+                data-color-mode="light"
                 previewOptions={{
                     rehypePlugins: [[rehypeSanitize]],
                     remarkPlugins: [[remarkGfm]]
