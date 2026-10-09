@@ -1,12 +1,20 @@
 import ErrorMessage from "../ErrorMessage";
 import { PostCoverImage } from "../PostCoverImage";
 import { PostSummary } from "../PostSummary";
-import { findAllPublicPostsCached } from "@/lib/post/queries/public";
+import { findAllPublicPostsCached, findAllPublicPostsFromApiCached } from "@/lib/post/queries/public";
 
 export async function PostsList() {
-    const posts = await findAllPublicPostsCached();
+    const postRes = await findAllPublicPostsFromApiCached()
 
-    if (posts.length <= 1) return null;
+    if (!postRes.success) {
+        return null;
+    }
+
+    const posts = postRes.data;
+
+    if (posts.length <= 1) {
+        return null;
+    }
 
     return (
         <div className="grid grid-cols-1 mb-16 gap-8 sm:grid-cols-2 lg:grid-cols-3">
