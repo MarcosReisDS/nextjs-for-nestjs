@@ -1,10 +1,10 @@
 'use server';
 
-import { createLoginSession, createLoginSessionFromApi, verifyPassword } from "@/lib/login/manage-login";
+import { createLoginSessionFromApi } from "@/lib/login/manage-login";
 import { LoginSchema } from "@/lib/login/schemas";
 import { apiRequest } from "@/utils/api-request";
-import { asyncDelay } from "@/utils/async-delay";
 import { getZodErrorMessage } from "@/utils/get-zod-error-messages";
+import { verifyHoneypotInput } from "@/utils/verify-honeypot-input";
 import { redirect } from "next/navigation";
 
 type LoginActionState = {
@@ -22,7 +22,15 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
         };
     }
 
-    await asyncDelay(3000);
+    const isBot = await verifyHoneypotInput(formData)
+
+    if (isBot) {
+        return {
+            email: '',
+            errors: ['nice'],
+        }
+    }
+
 
     if (!(formData instanceof FormData)) {
         return {
@@ -42,7 +50,7 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
         }
     }
 
-    const loginResponse = await apiRequest<{accessToken: string}>('/auth/login', {
+    const loginResponse = await apiRequest<{ accessToken: string }>('/auth/login', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -57,6 +65,6 @@ export async function loginAction(state: LoginActionState, formData: FormData) {
         }
     }
 
-   await createLoginSessionFromApi(loginResponse.data.accessToken);
+    await createLoginSessionFromApi(loginResponse.data.accessToken);
     redirect('/admin/post');
 }
